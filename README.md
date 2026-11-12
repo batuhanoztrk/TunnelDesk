@@ -1,6 +1,6 @@
 # TunnelDesk
 
-Kubernetes ve SSH tünellerini tek ekranda yönetmek için küçük, bağımsız bir macOS uygulaması. Swift ve SwiftUI ile geliştirilmiştir; üçüncü taraf uygulama bağımlılığı yoktur.
+Kubernetes ve SSH tünellerini tek ekranda yönetmek için küçük, bağımsız bir macOS uygulaması. Swift ve SwiftUI ile geliştirilmiştir. Otomatik güncellemeler için Sparkle uygulamaya dahil edilmiştir.
 
 Uygulama boş başlar. Hazır bağlantı, kubeconfig, context, namespace veya sunucu bilgisi içermez.
 
@@ -10,6 +10,7 @@ Uygulama boş başlar. Hazır bağlantı, kubeconfig, context, namespace veya su
 - Bağlantı profili oluşturma, düzenleme, çoğaltma ve silme.
 - Menü çubuğundan kontrol, bağlantı durumu ve günlükler.
 - Port çakışması kontrolü ve görünür hata mesajları.
+- GitHub release'lerinden imzalı otomatik güncelleme; menüden elle kontrol ve otomatik güncelleme ayarları.
 - Yerel dinleyicileri yalnızca `127.0.0.1` adresine bağlama.
 
 | Tür | Kullanım |
@@ -36,6 +37,16 @@ open TunnelDesk.app
 ```
 
 Derleme, mevcut Mac'in mimarisine uygun ve yerel olarak imzalanmış `TunnelDesk.app` oluşturur. Uygulamayı Applications klasörüne taşıyabilirsin.
+
+İlk derleme, SHA-256 değeri sabitlenmiş resmi Sparkle paketini indirir; internet erişimi gerekir. Sparkle uygulamanın içinde taşınır, kullanıcıların ayrıca kurması gerekmez. Lisans: [LICENSES/Sparkle.txt](LICENSES/Sparkle.txt).
+
+## Güncellemeler
+
+**TunnelDesk → Güncellemeleri kontrol et…** veya menü çubuğundaki aynı komutla yeni sürümü kontrol edebilirsin. Varsayılan olarak uygulama 6 saatte bir kontrol eder, güncellemeyi arka planda indirir ve uygulama kapanırken kurar. Ayarlar'dan otomatik kontrolü ve indirmeyi değiştirebilirsin. Elle başlatılan kurulumda uygulama tünelleri temizleyip yeniden başlar.
+
+Güncellemeler public GitHub release'lerindeki imzalı `appcast.xml` üzerinden bulunur. Hem metadata hem ZIP Ed25519 ile doğrulanır. GitHub hesabı, token veya `gh` kurulumu gerekmez. Uygulama verileri ve içeri aktarılan kubeconfig dosyaları korunur. 1.0.1 ve önceki sürümlerden geçerken güncelleme altyapısını içeren sürümü bir kez elle kurmak gerekir.
+
+Yeni sürüm yayımlama: [docs/releases.md](docs/releases.md).
 
 ## Yerel doğrulama
 

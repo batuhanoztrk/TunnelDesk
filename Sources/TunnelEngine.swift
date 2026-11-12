@@ -37,6 +37,7 @@ final class TunnelEngine: ObservableObject {
     private var storageValid = true
     private var migration: Task<Void, Never>?
     private var saving: Task<Void, Error>?
+    private var shutdownOperation: Task<Void, Never>?
 
     init(store: ProfileStore = ProfileStore(), tools: ToolPaths = .detected) {
         self.store = store; self.tools = tools; self.kubeconfigs = KubeconfigStore(profileStore: store)
@@ -260,7 +261,19 @@ final class TunnelEngine: ObservableObject {
         if state.relayName == name { state.relayName = nil }
     }
     func shutdown() async {
+        if let shutdownOperation { await shutdownOperation.value; return }
         shuttingDown = true
+        let operation = Task { await self.finishShutdown() }
+        shutdownOperation = operation
+        await operation.value
+    }
+    func resumeAfterCancelledUpdate() async {
+        guard let operation = shutdownOperation else { return }
+        await operation.value
+        shutdownOperation = nil
+        shuttingDown = false
+    }
+    private func finishShutdown() async {
         let activeSave = saving
         activeSave?.cancel()
         migration?.cancel()

@@ -15,3 +15,5 @@ xcrun swiftc -swift-version 5 -parse-as-library \
   "$PROJECT_DIR/Tests/ManagedKubeconfigTests.swift" \
   -o "$BUILD_DIR/IntegrationTests"
 "$BUILD_DIR/IntegrationTests" "$PROJECT_DIR"
+SPARKLE_DIR="$(bash "$PROJECT_DIR/scripts/fetch-sparkle.sh")"
+TUNNELDESK_SPARKLE_DIR="$SPARKLE_DIR" python3 -m unittest discover -s "$PROJECT_DIR/Tests" -p 'test_updates.py' -v

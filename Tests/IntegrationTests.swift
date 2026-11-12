@@ -108,6 +108,13 @@ struct IntegrationTests {
         let lookupResult = try await backgroundLookup.value
         try expect(lookupResult.code != 0, "Shutdown also terminates commands owned by editor lookups")
         try expect(engine.activeCount == 0, "App shutdown stops all tunnel processes")
+        await engine.shutdown()
+        try expect(engine.activeCount == 0, "Repeated shutdown during updater relaunch is safe and idempotent")
+        await engine.resumeAfterCancelledUpdate()
+        try expect(!engine.shuttingDown, "Aborted update can recover from the cleanup state")
+        engine.start(a)
+        try await wait("Tunnel can be opened again after an aborted update") { engine.session(for: a.id).status == .running }
+        await engine.shutdown()
         try LocalPort.ensureAvailable(TunnelProfile.port(ssh.localPort)!)
         let started = Date()
         let timed = try await CommandExecutor.run("/bin/sleep", ["20"], timeout: 0.15)

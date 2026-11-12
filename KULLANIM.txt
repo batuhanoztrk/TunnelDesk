@@ -1,4 +1,4 @@
-TunnelDesk 1.0.1 — macOS
+TunnelDesk 1.0.2 — macOS
 
 BAŞLANGIÇ
 TunnelDesk.app'i aç. Uygulama boş başlar; hiçbir bağlantı veya sunucu bilgisi hazır gelmez.
@@ -46,6 +46,15 @@ Cmd+N: Yeni tünel
 Cmd+Shift+O: Tümünü aç
 Cmd+Shift+K: Tümünü kapat
 Cmd+Q: Çıkış
+
+GÜNCELLEMELER
+TunnelDesk menüsünden veya menü çubuğundan “Güncellemeleri kontrol et…” komutunu kullan.
+Yeni sürümler public GitHub release'lerinden bulunur; GitHub hesabı veya gh kurulumu gerekmez.
+Varsayılan olarak 6 saatte bir kontrol edilir, paket arka planda indirilir ve çıkışta kurulur.
+Elle kurulum başlatıldığında tüneller temizlenir ve uygulama yeniden açılır.
+Ayarlar'dan otomatik kontrolü ve indirmeyi değiştirebilirsin.
+Güncelleme metadata'sı ve paket imzaları doğrulanır; kayıtlı tüneller ve kubeconfig kopyaları korunur.
+1.0.1 ve önceki sürümlerde bu altyapı bulunmadığından bu sürümü bir kez elle kurmalısın.
 
 KAYITLAR VE ARAÇLAR
 Profiller: ~/Library/Application Support/TunnelDesk/profiles.json

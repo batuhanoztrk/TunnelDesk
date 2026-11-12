@@ -21,13 +21,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 @main
 struct TunnelDeskApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-    @StateObject private var engine = TunnelEngine()
+    @StateObject private var engine: TunnelEngine
+    @StateObject private var updater: AppUpdater
+    init() {
+        let engine = TunnelEngine()
+        _engine = StateObject(wrappedValue: engine)
+        _updater = StateObject(wrappedValue: AppUpdater(engine: engine))
+    }
     var body: some Scene {
         WindowGroup("TunnelDesk", id: "main") {
-            MainView().environmentObject(engine).onAppear { delegate.engine = engine }
+            MainView().environmentObject(engine).onAppear { delegate.engine = engine; updater.start() }
         }.defaultSize(width: 1120, height: 760)
             .commands {
                 CommandGroup(replacing: .newItem) {}
+                CommandGroup(after: .appInfo) {
+                    Button("Güncellemeleri kontrol et…") { updater.check() }.disabled(!updater.canCheck)
+                    Divider()
+                }
                 CommandMenu("Tüneller") {
                     Button("Tümünü aç") { engine.startAll() }.keyboardShortcut("o", modifiers: [.command, .shift])
                     Button("Tümünü kapat") { engine.stopAll() }.keyboardShortcut("k", modifiers: [.command, .shift])
@@ -36,16 +46,18 @@ struct TunnelDeskApp: App {
                 }
             }
         MenuBarExtra {
-            TrayMenu(engine: engine)
+            TrayMenu(engine: engine, updater: updater)
         } label: {
             Image(systemName: "point.3.connected.trianglepath.dotted")
             if engine.runningCount > 0 { Text("\(engine.runningCount)") }
         }
+        Settings { UpdateSettingsView(updater: updater) }
     }
 }
 
 struct TrayMenu: View {
     @ObservedObject var engine: TunnelEngine
+    @ObservedObject var updater: AppUpdater
     @Environment(\.openWindow) private var openWindow
     var body: some View {
         Button("TunnelDesk'i aç") { openWindow(id: "main"); NSApp.activate(ignoringOtherApps: true) }
@@ -60,6 +72,8 @@ struct TrayMenu: View {
         Divider()
         Button("Tümünü aç") { engine.startAll() }.disabled(engine.profiles.isEmpty)
         Button("Tümünü kapat") { engine.stopAll() }.disabled(engine.activeCount == 0)
+        Divider()
+        Button("Güncellemeleri kontrol et…") { updater.check() }.disabled(!updater.canCheck)
         Divider()
         Button("Çıkış") { NSApp.terminate(nil) }.keyboardShortcut("q")
     }

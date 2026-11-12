@@ -5,3 +5,5 @@ build/
 *.log
 profiles.json
 kubeconfigs/
+__pycache__/
+*.pyc

@@ -11,6 +11,7 @@ Uygulama boş başlar. Hazır bağlantı, kubeconfig, context, namespace veya su
 - Menü çubuğundan kontrol, bağlantı durumu ve günlükler.
 - Port çakışması kontrolü ve görünür hata mesajları.
 - GitHub release'lerinden imzalı otomatik güncelleme; menüden elle kontrol ve otomatik güncelleme ayarları.
+- Ayarlar → Genel'den Dock ve menü çubuğu simgelerini ayrı ayrı yönetme; varsayılan Dock kapalı, tray açık.
 - Yerel dinleyicileri yalnızca `127.0.0.1` adresine bağlama.
 
 | Tür | Kullanım |
@@ -39,6 +40,12 @@ open TunnelDesk.app
 Derleme, mevcut Mac'in mimarisine uygun ve yerel olarak imzalanmış `TunnelDesk.app` oluşturur. Uygulamayı Applications klasörüne taşıyabilirsin.
 
 İlk derleme, SHA-256 değeri sabitlenmiş resmi Sparkle paketini indirir; internet erişimi gerekir. Sparkle uygulamanın içinde taşınır, kullanıcıların ayrıca kurması gerekmez. Lisans: [LICENSES/Sparkle.txt](LICENSES/Sparkle.txt).
+
+## Dock ve menü çubuğu
+
+Uygulama varsayılan olarak Dock'ta görünmez; menü çubuğundaki TunnelDesk simgesinden ulaşılır. **Ayarlar → Genel** bölümündeki **Dock'ta göster** ve **Menü çubuğunda (tray) göster** seçenekleri anında uygulanır ve hatırlanır. Uygulamaya erişim kaybolmasın diye ikisi aynı anda kapalı tutulmaz; son simgeyi kapatırken diğeri otomatik açılır.
+
+Tray menüsünden tünelleri tek tek veya topluca açıp kapatabilir, ana pencereyi ve Ayarlar'ı açabilirsin. Pencereyi kapatmak uygulamayı veya açık tünelleri durdurmaz. Tamamen çıkmak için tray menüsündeki **Çıkış** seçeneğini kullan.
 
 ## Güncellemeler
 

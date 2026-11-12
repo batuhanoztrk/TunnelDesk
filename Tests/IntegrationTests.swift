@@ -31,6 +31,7 @@ struct IntegrationTests {
         return String(UInt16(bigEndian: addr.sin_port))
     }
     @MainActor static func run() async throws {
+        try VisibilityPreferenceTests.run()
         let root = URL(fileURLWithPath: CommandLine.arguments[1])
         let temporary = FileManager.default.temporaryDirectory.appendingPathComponent("TunnelDesk-tests-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: temporary, withIntermediateDirectories: true)

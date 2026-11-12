@@ -1,4 +1,4 @@
-TunnelDesk 1.0.2 — macOS
+TunnelDesk 1.0.3 — macOS
 
 BAŞLANGIÇ
 TunnelDesk.app'i aç. Uygulama boş başlar; hiçbir bağlantı veya sunucu bilgisi hazır gelmez.
@@ -35,7 +35,13 @@ Orijinal dosyadaki değişiklikler uygulamadaki kopyayı otomatik olarak güncel
 Eski kayıtlar ilk açılışta otomatik içeri aktarılır; dosya eksikse yeniden seçmen istenir.
 
 TOPLU KONTROL
+Varsayılan olarak Dock simgesi kapalı, menü çubuğu (tray) simgesi açıktır.
+Ayarlar → Genel'den Dock ve tray görünürlüğünü ayrı ayrı değiştirebilirsin.
+Tercihler hemen uygulanır ve sonraki açılışta korunur.
+İkisini aynı anda kapatmak yerine uygulamaya erişim için diğeri otomatik açılır.
 Üst araç çubuğundan veya macOS menü çubuğundaki simgeden tümünü aç / kapat.
+Tray menüsünde her tünelin satırına tıklayarak o bağlantıyı açıp kapatabilirsin.
+Tray'deki “TunnelDesk'i aç” ve “Ayarlar…” seçenekleriyle pencerelere ulaşabilirsin.
 Pencereyi kapatmak tünelleri açık tutar; menü çubuğundan tekrar ulaşabilirsin.
 “Çıkış” veya Cmd+Q yerel tünelleri durdurur ve bu oturumda oluşturulan geçici podları temizler.
 Pod temizlenemezse hata ayrıntısı görünür; “Podu temizle” ile yeniden deneyebilirsin.

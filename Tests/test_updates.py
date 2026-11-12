@@ -87,6 +87,7 @@ class UpdateTests(unittest.TestCase):
         self.assertTrue(info["SUVerifyUpdateBeforeExtraction"])
         self.assertEqual(info["SUSignedFeedFailureExpirationInterval"], 0)
         self.assertFalse(info["SUEnableSystemProfiling"])
+        self.assertTrue(info["LSUIElement"])
 
 
 if __name__ == "__main__":

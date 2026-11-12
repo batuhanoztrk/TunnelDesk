@@ -1,0 +1,58 @@
+TunnelDesk 1.0 — macOS
+
+BAŞLANGIÇ
+TunnelDesk.app'i aç. Uygulama boş başlar; hiçbir bağlantı veya sunucu bilgisi hazır gelmez.
+İstersen uygulamayı Applications / Uygulamalar klasörüne taşıyabilirsin.
+
+YENİ TÜNEL
+“Yeni tünel” düğmesine bas, bağlantı türünü seç ve alanları doldur.
+Her eşzamanlı bağlantı için farklı bir yerel port kullan.
+Kaydettikten sonra “Tüneli aç” ile bağlan.
+DB istemcisinde sunucu adresi olarak 127.0.0.1 ve seçtiğin yerel portu kullan.
+SQL Server bağlantı dizesinde adres biçimi: Server=127.0.0.1,<yerel port>
+Veritabanı kullanıcı adı / şifresi DB istemcisinde kalır; TunnelDesk bunları istemez.
+
+BAĞLANTI TÜRLERİ
+• Kubernetes · TCP tüneli: Cluster'ın erişebildiği bir IP / hostname ve porta bağlanır.
+  Kubeconfig, context, namespace, hedef sunucu ve hedef port bilgilerini gir.
+  Uygulama alpine/socat imajından kendisine ait geçici bir pod oluşturur ve kapatırken temizler.
+  Namespace'te pod oluşturma/silme ve pods/portforward yetkileri gerekir.
+  Cluster bu imajı çekebilmeli; pod hedef sunucuya ağ üzerinden erişebilmeli.
+• Kubernetes · Port yönlendirme: Var olan bir kaynağa yönlendirir.
+  Kaynak alanı pod/ad, svc/ad veya deployment/ad biçimindedir.
+• SSH · Yerel tünel: SSH sunucusunun erişebildiği hedef IP / hostname ve porta bağlanır.
+  SSH agent, ~/.ssh/config veya seçilen anahtar dosyası kullanılır.
+  Şifre soran etkileşimli oturumlar desteklenmez; host anahtarını önceden terminalde doğrula.
+
+KUBERNETES DOSYASI
+Dosyayı “Seç…” ile seç. Context yanındaki ok dosyadaki context adlarını okur.
+Namespace yanındaki ok erişilebilir namespace'leri getirir; yetki kısıtlıysa adını elle yazabilirsin.
+Kubeconfig'i bu uygulamaya kaydettikten sonra aynı dosya yolunda tut.
+Uygulama kubeconfig'teki token / sertifikaları profil dosyasına kopyalamaz.
+
+TOPLU KONTROL
+Üst araç çubuğundan veya macOS menü çubuğundaki simgeden tümünü aç / kapat.
+Pencereyi kapatmak tünelleri açık tutar; menü çubuğundan tekrar ulaşabilirsin.
+“Çıkış” veya Cmd+Q yerel tünelleri durdurur ve bu oturumda oluşturulan geçici podları temizler.
+Pod temizlenemezse hata ayrıntısı görünür; “Podu temizle” ile yeniden deneyebilirsin.
+Uygulama zorla kapatılırsa cluster'da artık pod kalabilir; geçici podlar en fazla 24 saat çalışır.
+
+KISAYOLLAR
+Cmd+N: Yeni tünel
+Cmd+Shift+O: Tümünü aç
+Cmd+Shift+K: Tümünü kapat
+Cmd+Q: Çıkış
+
+KAYITLAR VE ARAÇLAR
+Profiller: ~/Library/Application Support/TunnelDesk/profiles.json
+Günlükler yalnızca uygulama açıkken bellekte tutulur.
+kubectl: PATH, /opt/homebrew/bin veya /usr/local/bin içinden bulunur.
+SSH: sistemdeki ssh kullanılır.
+Tüm yerel dinleyiciler 127.0.0.1 adresine bağlıdır.
+
+KAYNAKTAN DERLEME
+Xcode veya Apple Command Line Tools ile:
+  bash build.sh
+Yerel, üretime bağlanmayan entegrasyon kontrolleri:
+  bash test.sh
+Derleme bu Mac'in mimarisine uygun .app oluşturur (macOS 14 ve üzeri).

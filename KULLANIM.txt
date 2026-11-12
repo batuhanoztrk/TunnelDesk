@@ -1,4 +1,4 @@
-TunnelDesk 1.0.3 — macOS
+TunnelDesk 1.0.4 — macOS
 
 BAŞLANGIÇ
 TunnelDesk.app'i aç. Uygulama boş başlar; hiçbir bağlantı veya sunucu bilgisi hazır gelmez.
@@ -46,6 +46,12 @@ Pencereyi kapatmak tünelleri açık tutar; menü çubuğundan tekrar ulaşabili
 “Çıkış” veya Cmd+Q yerel tünelleri durdurur ve bu oturumda oluşturulan geçici podları temizler.
 Pod temizlenemezse hata ayrıntısı görünür; “Podu temizle” ile yeniden deneyebilirsin.
 Uygulama zorla kapatılırsa cluster'da artık pod kalabilir; geçici podlar en fazla 24 saat çalışır.
+
+OTOMATİK BAŞLATMA
+Ayarlar → Genel → “Mac açıldığında otomatik başlat” ile giriş öğesini açıp kapatabilirsin.
+Bu seçenek Mac'te oturum açıldığında uygulamayı başlatır; tünelleri otomatik açmaz.
+macOS onayı gerekiyorsa aynı ekranda uyarı ve Sistem Ayarları'na geçiş düğmesi görünür.
+Durum macOS'tan okunur; Sistem Ayarları'ndaki değişiklikler uygulamaya dönünce yenilenir.
 
 KISAYOLLAR
 Cmd+N: Yeni tünel

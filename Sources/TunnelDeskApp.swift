@@ -33,6 +33,7 @@ struct TunnelDeskApp: App {
     @StateObject private var engine: TunnelEngine
     @StateObject private var updater: AppUpdater
     @StateObject private var visibility: VisibilityPreferences
+    @StateObject private var startup = StartupPreferences()
     init() {
         let engine = TunnelEngine()
         let visibility = VisibilityPreferences()
@@ -67,9 +68,9 @@ struct TunnelDeskApp: App {
         }.menuBarExtraStyle(.menu)
         Settings {
             TabView {
-                AppearanceSettingsView(visibility: visibility).tabItem { Label("Genel", systemImage: "slider.horizontal.3") }
+                AppearanceSettingsView(visibility: visibility, startup: startup).tabItem { Label("Genel", systemImage: "slider.horizontal.3") }
                 UpdateSettingsView(updater: updater).tabItem { Label("Güncellemeler", systemImage: "arrow.triangle.2.circlepath") }
-            }.frame(width: 510, height: 350)
+            }.frame(width: 510, height: 460)
         }
     }
 }

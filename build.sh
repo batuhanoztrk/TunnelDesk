@@ -10,7 +10,7 @@ ARCH="$(uname -m)"
 xcrun swiftc -swift-version 5 -O -parse-as-library \
   -target "$ARCH-apple-macosx14.0" \
   -module-cache-path "$BUILD_DIR/module-cache" \
-  -framework SwiftUI -framework AppKit -framework Combine \
+  -framework SwiftUI -framework AppKit -framework Combine -framework ServiceManagement \
   -F "$SPARKLE_DIR" -framework Sparkle \
   -Xlinker -rpath -Xlinker '@executable_path/../Frameworks' \
   "$PROJECT_DIR"/Sources/*.swift \

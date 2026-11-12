@@ -47,6 +47,8 @@ Uygulama varsayılan olarak Dock'ta görünmez; menü çubuğundaki TunnelDesk s
 
 Tray menüsünden tünelleri tek tek veya topluca açıp kapatabilir, ana pencereyi ve Ayarlar'ı açabilirsin. Pencereyi kapatmak uygulamayı veya açık tünelleri durdurmaz. Tamamen çıkmak için tray menüsündeki **Çıkış** seçeneğini kullan.
 
+**Ayarlar → Genel → Mac açıldığında otomatik başlat** seçeneği uygulamayı bu Mac'te oturum açıldığında başlatır. Durum macOS giriş öğelerinden okunur; ayrı bir yerel açık/kapalı kaydı tutulmaz. macOS onayı gerekiyorsa ayarda açıkça gösterilir ve Sistem Ayarları'na ulaşılabilir. Bu seçenek yalnızca uygulamayı başlatır; tüneller manuel olarak açılır. Varsayılan olarak giriş öğesi eklenmez.
+
 ## Güncellemeler
 
 **TunnelDesk → Güncellemeleri kontrol et…** veya menü çubuğundaki aynı komutla yeni sürümü kontrol edebilirsin. Varsayılan olarak uygulama 6 saatte bir kontrol eder, güncellemeyi arka planda indirir ve uygulama kapanırken kurar. Ayarlar'dan otomatik kontrolü ve indirmeyi değiştirebilirsin. Elle başlatılan kurulumda uygulama tünelleri temizleyip yeniden başlar.

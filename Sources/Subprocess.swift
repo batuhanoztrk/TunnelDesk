@@ -21,6 +21,7 @@ final class Subprocess: @unchecked Sendable {
     private var buffer = Data()
     private var cancelled = false
     private var finished = false
+    private let captureLimit: Int?
     var onOutput: ((String) -> Void)?
     var onExit: ((CommandResult) -> Void)?
 
@@ -45,11 +46,12 @@ final class Subprocess: @unchecked Sendable {
         }
     }
 
-    init(executable: String, arguments: [String]) {
+    init(executable: String, arguments: [String], captureLimit: Int? = 262_144, discardStderr: Bool = false) {
+        self.captureLimit = captureLimit
         process.executableURL = URL(fileURLWithPath: executable)
         process.arguments = arguments
         process.standardOutput = pipe
-        process.standardError = pipe
+        process.standardError = discardStderr ? FileHandle.nullDevice : pipe
         var environment = ProcessInfo.processInfo.environment
         environment["PATH"] = (environment["PATH"] ?? "/usr/bin:/bin") + ":/opt/homebrew/bin:/usr/local/bin"
         // No password or GUI askpass prompts may outlive a tunnel.
@@ -97,7 +99,7 @@ final class Subprocess: @unchecked Sendable {
     private func receive(_ data: Data) {
         lock.lock()
         buffer.append(data)
-        if buffer.count > 262_144 { buffer.removeFirst(buffer.count - 262_144) }
+        if let captureLimit, buffer.count > captureLimit { buffer.removeFirst(buffer.count - captureLimit) }
         lock.unlock()
         onOutput?(String(decoding: data, as: UTF8.self))
     }
@@ -132,8 +134,8 @@ final class Subprocess: @unchecked Sendable {
 }
 
 enum CommandExecutor {
-    static func run(_ executable: String, _ arguments: [String], input: Data? = nil, timeout: TimeInterval = 30, onOutput: ((String) -> Void)? = nil) async throws -> CommandResult {
-        let command = Subprocess(executable: executable, arguments: arguments)
+    static func run(_ executable: String, _ arguments: [String], input: Data? = nil, timeout: TimeInterval = 30, captureLimit: Int? = 262_144, discardStderr: Bool = false, onOutput: ((String) -> Void)? = nil) async throws -> CommandResult {
+        let command = Subprocess(executable: executable, arguments: arguments, captureLimit: captureLimit, discardStderr: discardStderr)
         let deadline = DispatchWorkItem { command.stop() }
         return try await withTaskCancellationHandler {
             try Task.checkCancellation()

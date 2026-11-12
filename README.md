@@ -47,7 +47,13 @@ Entegrasyon kontrolleri sahte `kubectl` / SSH süreçleri ve yerel soketler kull
 
 ## Kayıtlar
 
-Profiller `~/Library/Application Support/TunnelDesk/profiles.json` dosyasında tutulur. Kubeconfig ve SSH anahtar dosyalarının yalnızca yolları kaydedilir; içerikleri kopyalanmaz. Veritabanı kullanıcı adı ve şifresi uygulamaya girilmez.
+Profiller `~/Library/Application Support/TunnelDesk/profiles.json` dosyasında tutulur. Bağlantıyı kaydederken kubeconfig, `~/Library/Application Support/TunnelDesk/kubeconfigs/` klasörüne içeri aktarılır; bağlantı bu kopyayı kullanır. Orijinal kubeconfig dosyasını silebilir veya taşıyabilirsin.
+
+Sertifika, anahtar ve token dosyalarına referanslar kopyanın içine alınır. Kubeconfig kopyaları yalnızca mevcut kullanıcının okuyup yazabileceği izinlerle saklanır. Dosya içeriği günlüklere yazılmaz. Yeni bir kubeconfig ile güncellemek için bağlantıyı düzenleyip yeni dosyayı seçerek kaydet; orijinal dosyadaki sonraki değişiklikler otomatik olarak kopyaya aktarılmaz.
+
+Eski sürümde oluşturulmuş bağlantılar ilk açılışta otomatik olarak içeri aktarılır. Orijinal dosya önceden silinmişse uygulama durumu bildirir; bağlantıyı düzenleyip dosyayı yeniden seçmek gerekir. Bağlantı silindiğinde kullanılmayan uygulama kopyası da temizlenir.
+
+SSH anahtar dosyalarının yalnızca yolları kaydedilir. Kubeconfig'in kullandığı harici kimlik doğrulama araçları kurulu kalmalıdır. Veritabanı kullanıcı adı ve şifresi uygulamaya girilmez.
 
 Pencereyi kapatmak tünelleri açık tutar. **Çıkış / Cmd+Q**, yerel tünelleri durdurur ve oluşturulan geçici podları temizler. Uygulama zorla kapatılırsa artık pod kalabilir; geçici podların çalışma süresi en fazla 24 saattir.
 

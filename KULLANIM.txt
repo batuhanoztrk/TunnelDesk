@@ -1,4 +1,4 @@
-TunnelDesk 1.0 — macOS
+TunnelDesk 1.0.1 — macOS
 
 BAŞLANGIÇ
 TunnelDesk.app'i aç. Uygulama boş başlar; hiçbir bağlantı veya sunucu bilgisi hazır gelmez.
@@ -27,8 +27,12 @@ BAĞLANTI TÜRLERİ
 KUBERNETES DOSYASI
 Dosyayı “Seç…” ile seç. Context yanındaki ok dosyadaki context adlarını okur.
 Namespace yanındaki ok erişilebilir namespace'leri getirir; yetki kısıtlıysa adını elle yazabilirsin.
-Kubeconfig'i bu uygulamaya kaydettikten sonra aynı dosya yolunda tut.
-Uygulama kubeconfig'teki token / sertifikaları profil dosyasına kopyalamaz.
+“Kaydet” işlemi kubeconfig'i uygulamanın kendi veri klasörüne kopyalar.
+Kaydetme tamamlandıktan sonra orijinal dosyayı silebilir veya taşıyabilirsin.
+Sertifika, anahtar ve token dosyalarına referanslar da içeri aktarılır.
+Yeni kubeconfig ile güncellemek için tüneli düzenleyip yeni dosyayı seçerek kaydet.
+Orijinal dosyadaki değişiklikler uygulamadaki kopyayı otomatik olarak güncellemez.
+Eski kayıtlar ilk açılışta otomatik içeri aktarılır; dosya eksikse yeniden seçmen istenir.
 
 TOPLU KONTROL
 Üst araç çubuğundan veya macOS menü çubuğundaki simgeden tümünü aç / kapat.
@@ -45,6 +49,10 @@ Cmd+Q: Çıkış
 
 KAYITLAR VE ARAÇLAR
 Profiller: ~/Library/Application Support/TunnelDesk/profiles.json
+Kubeconfig kopyaları: ~/Library/Application Support/TunnelDesk/kubeconfigs/
+Kopyalar yalnızca mevcut kullanıcının okuyup yazabileceği dosya izinleriyle saklanır.
+Tünel silindiğinde kullanılmayan kubeconfig kopyası da temizlenir.
+SSH anahtar dosyaları ve harici kimlik doğrulama araçları mevcut konumlarında kalmalıdır.
 Günlükler yalnızca uygulama açıkken bellekte tutulur.
 kubectl: PATH, /opt/homebrew/bin veya /usr/local/bin içinden bulunur.
 SSH: sistemdeki ssh kullanılır.

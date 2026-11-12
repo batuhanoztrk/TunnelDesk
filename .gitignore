@@ -3,3 +3,5 @@ TunnelDesk.app/
 *.zip
 build/
 *.log
+profiles.json
+kubeconfigs/

@@ -49,8 +49,9 @@ struct IntegrationTests {
             p.resource = "pod/test-server"; p.remoteHost = "192.0.2.10"; p.remotePort = "1433"; p.sshHost = "test-ssh"; p.sshUser = "tester"
             return p
         }
-        let a = try profile("first"), b = try profile("second")
-        try engine.save(a); try engine.save(b)
+        var a = try profile("first"), b = try profile("second")
+        try await engine.save(a); try await engine.save(b)
+        a = engine.profiles.first { $0.id == a.id }!; b = engine.profiles.first { $0.id == b.id }!
         try expect(try engine.store.load() == [a, b], "Profiles round-trip through persistent JSON with spaces in file paths")
         var invalid = a; invalid.remoteHost = "host;touch /tmp/injected"; invalid.kind = .relay
         do { try invalid.validate(); throw TunnelError("Injection validation failed") } catch let e as TunnelError { try expect(e.message.contains("hedef"), "Invalid relay hosts rejected without shell execution") }
@@ -62,14 +63,14 @@ struct IntegrationTests {
         try await wait("Two forwards run concurrently, including split readiness messages") { engine.runningCount == 2 }
         do { try LocalPort.ensureAvailable(TunnelProfile.port(a.localPort)!); throw TunnelError("Port conflict undetected") }
         catch let e as TunnelError { try expect(e.message.contains("kullanılıyor"), "An existing listener is detected without stopping it") }
-        var conflict = try profile("conflict"); conflict.localPort = a.localPort; try engine.save(conflict); engine.start(conflict)
+        var conflict = try profile("conflict"); conflict.localPort = a.localPort; try await engine.save(conflict); engine.start(conflict)
         try expect(engine.session(for: conflict.id).status == .failed, "A duplicate local port produces a visible failure")
         try expect(engine.session(for: a.id).status == .running, "Port conflicts do not terminate another tunnel")
         engine.stopAll()
         try await wait("Stop all releases every owned forwarding process") { engine.activeCount == 0 }
         try LocalPort.ensureAvailable(TunnelProfile.port(a.localPort)!)
         try LocalPort.ensureAvailable(TunnelProfile.port(b.localPort)!)
-        let relay = try profile("relay", kind: .relay); try engine.save(relay)
+        let relay = try profile("relay", kind: .relay); try await engine.save(relay)
         engine.start(relay)
         try await wait("Relay creates a pod and starts its forward") { engine.session(for: relay.id).status == .running }
         let pod = engine.session(for: relay.id).relayName!
@@ -82,24 +83,24 @@ struct IntegrationTests {
         let commands = try lines.map { try JSONDecoder().decode([String].self, from: Data($0.utf8)) }
         let deletion = commands.first { $0.contains("delete") && $0.contains("--field-selector=metadata.name=\(pod)") }
         try expect(deletion?.contains("--selector=app.kubernetes.io/managed-by=tunneldesk,tunneldesk-profile=\(relay.id.uuidString.lowercased())") == true, "Pod cleanup requires exact ownership labels and pod name")
-        let slow = try profile("cancel", kind: .relay, namespace: "slow"); try engine.save(slow); engine.start(slow)
+        let slow = try profile("cancel", kind: .relay, namespace: "slow"); try await engine.save(slow); engine.start(slow)
         try await wait("Slow relay reaches preparation") { engine.session(for: slow.id).relayName != nil }
         try await Task.sleep(nanoseconds: 150_000_000)
         engine.stop(slow)
         try await wait("Stopping during preparation cancels the command and cleans the pod") { engine.session(for: slow.id).status == .stopped }
-        let broken = try profile("broken", namespace: "broken"); try engine.save(broken); engine.start(broken)
+        let broken = try profile("broken", namespace: "broken"); try await engine.save(broken); engine.start(broken)
         try await wait("Unexpected forwarding exit becomes a visible error") { engine.session(for: broken.id).status == .failed }
         try expect(engine.session(for: broken.id).error?.contains("target pod not found") == true, "Actionable subprocess failure reaches the UI")
-        let ssh = try profile("ssh", kind: .ssh); try engine.save(ssh); engine.start(ssh)
+        let ssh = try profile("ssh", kind: .ssh); try await engine.save(ssh); engine.start(ssh)
         try expect(["ControlMaster=no", "ControlPath=none", "ControlPersist=no", "ForkAfterAuthentication=no"].allSatisfy { ssh.forwardArguments().contains($0) }, "SSH config cannot move owned forwarding into a persistent background master")
         try await wait("SSH forwarding reaches running state") { engine.session(for: ssh.id).status == .running }
-        let stranded = try profile("cleanup-denied", kind: .relay, namespace: "cleanup-denied"); try engine.save(stranded); engine.start(stranded)
+        let stranded = try profile("cleanup-denied", kind: .relay, namespace: "cleanup-denied"); try await engine.save(stranded); engine.start(stranded)
         try await wait("Relay with denied deletion starts normally") { engine.session(for: stranded.id).status == .running }
         engine.stop(stranded)
         try await wait("Denied pod cleanup remains visible and retryable") { engine.session(for: stranded.id).status == .failed }
         try expect(engine.session(for: stranded.id).relayName != nil, "Cleanup ownership is retained when pod deletion fails")
         var edited = stranded; edited.namespace = "elsewhere"
-        do { try engine.save(edited); throw TunnelError("Editing stranded relay was permitted") }
+        do { try await engine.save(edited); throw TunnelError("Editing stranded relay was permitted") }
         catch let e as TunnelError { try expect(e.message.contains("podunu temizle"), "Editing cannot strand cleanup in the original namespace") }
         let backgroundLookup = Task { try await CommandExecutor.run("/bin/sleep", ["20"], timeout: 30) }
         try await Task.sleep(nanoseconds: 100_000_000)
@@ -113,9 +114,10 @@ struct IntegrationTests {
         try expect(timed.code != 0 && Date().timeIntervalSince(started) < 4, "Command deadline terminates a stuck child process")
         do { _ = try await CommandExecutor.run("/nonexistent/tunneldesk-tool", [], timeout: 1); throw TunnelError("Missing command was accepted") }
         catch { try expect(!error.localizedDescription.isEmpty, "Missing command reports launch failure") }
+        try await ManagedKubeconfigTests.run(fake: fake)
         let corrupt = temporary.appendingPathComponent("corrupt.json"); try Data("invalid JSON".utf8).write(to: corrupt)
         let damaged = TunnelEngine(store: ProfileStore(url: corrupt))
-        do { try damaged.save(a); throw TunnelError("Corrupt storage overwritten") }
+        do { try await damaged.save(a); throw TunnelError("Corrupt storage overwritten") }
         catch { try expect(try String(contentsOf: corrupt, encoding: .utf8) == "invalid JSON", "Unreadable profile storage is preserved") }
     }
 }

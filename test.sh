@@ -8,8 +8,10 @@ xcrun swiftc -swift-version 5 -parse-as-library \
   -module-cache-path "$BUILD_DIR/module-cache" \
   "$PROJECT_DIR/Sources/Models.swift" \
   "$PROJECT_DIR/Sources/ProfileStore.swift" \
+  "$PROJECT_DIR/Sources/KubeconfigStore.swift" \
   "$PROJECT_DIR/Sources/Subprocess.swift" \
   "$PROJECT_DIR/Sources/TunnelEngine.swift" \
   "$PROJECT_DIR/Tests/IntegrationTests.swift" \
+  "$PROJECT_DIR/Tests/ManagedKubeconfigTests.swift" \
   -o "$BUILD_DIR/IntegrationTests"
 "$BUILD_DIR/IntegrationTests" "$PROJECT_DIR"

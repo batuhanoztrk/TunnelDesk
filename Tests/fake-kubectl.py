@@ -13,7 +13,21 @@ if trace:
     with open(trace, "a") as f:
         f.write(json.dumps(args) + "\n")
 namespace = args[args.index("--namespace") + 1] if "--namespace" in args else "default"
-if "create" in args:
+if "config" in args and "view" in args:
+    filename = args[args.index("--kubeconfig") + 1]
+    if "slow-import" in filename:
+        time.sleep(20)
+    with open(filename) as f:
+        content = f.read()
+    if content.startswith("invalid"):
+        print("SECRET-SHOULD-NOT-LEAK: invalid config", file=sys.stderr)
+        sys.exit(1)
+    try:
+        config = json.loads(content)
+    except ValueError:
+        config = {"apiVersion": "v1", "kind": "Config", "clusters": [{"name": "test", "cluster": {"server": "https://test.invalid"}}], "contexts": [{"name": "test-context", "context": {"cluster": "test", "user": "test"}}], "users": [{"name": "test", "user": {"token": "SYNTHETIC_TEST_TOKEN"}}], "current-context": "test-context"}
+    print(json.dumps(config), flush=True)
+elif "create" in args:
     manifest = json.load(sys.stdin)
     if namespace == "denied":
         print("Error from server (Forbidden): pod creation denied", flush=True)

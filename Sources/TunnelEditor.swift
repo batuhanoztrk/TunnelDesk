@@ -10,6 +10,8 @@ struct TunnelEditor: View {
     @State private var namespaces: [String] = []
     @State private var loading = false
     @State private var lookup: Task<Void, Never>?
+    @State private var saving = false
+    @State private var saveOperation: Task<Void, Never>?
 
     private var isNew: Bool { !engine.profiles.contains { $0.id == profile.id } }
     var body: some View {
@@ -42,16 +44,16 @@ struct TunnelEditor: View {
                     Text(profile.kind == .relay ? "Cluster'da geçici bir TCP podu açılır. Tüneli kapatınca uygulamanın oluşturduğu pod temizlenir." : profile.kind == .ssh ? "SSH agent veya anahtar dosyası kullanılır. Şifre soran etkileşimli bağlantılar desteklenmez." : "Var olan pod, service veya deployment üzerinden port yönlendirilir.")
                 }
                 if let error { Section { Text(error).foregroundStyle(.red).font(.callout).textSelection(.enabled) } }
-            }.formStyle(.grouped).scrollContentBackground(.hidden)
+            }.formStyle(.grouped).scrollContentBackground(.hidden).disabled(saving)
             Divider()
             HStack {
-                if loading { ProgressView().controlSize(.small); Text("Bilgiler okunuyor…").font(.caption).foregroundStyle(.secondary) }
+                if loading || saving { ProgressView().controlSize(.small); Text(saving ? "Kubeconfig içeri aktarılıyor…" : "Bilgiler okunuyor…").font(.caption).foregroundStyle(.secondary) }
                 Spacer()
-                Button("Vazgeç") { dismiss() }.keyboardShortcut(.cancelAction)
-                Button("Kaydet") { save() }.buttonStyle(.borderedProminent).tint(.teal).keyboardShortcut(.defaultAction)
+                Button("Vazgeç") { saveOperation?.cancel(); dismiss() }.keyboardShortcut(.cancelAction)
+                Button("Kaydet") { save() }.buttonStyle(.borderedProminent).tint(.teal).keyboardShortcut(.defaultAction).disabled(saving || engine.importingConfigs)
             }.padding(18)
         }.frame(width: 620, height: 740)
-            .onDisappear { lookup?.cancel() }
+            .onDisappear { lookup?.cancel(); saveOperation?.cancel() }
             .onChange(of: profile.kubeconfig) { contexts = []; namespaces = []; lookup?.cancel(); loading = false }
             .onChange(of: profile.context) { namespaces = []; lookup?.cancel(); loading = false }
     }
@@ -75,7 +77,7 @@ struct TunnelEditor: View {
                 }
                 Button { fetchNamespaces() } label: { Image(systemName: "arrow.clockwise") }.help("Erişilebilir namespace'leri oku").disabled(profile.kubeconfig.isEmpty || loading)
             }
-        } header: { Text("Kubernetes") } footer: { Text("Kubeconfig dosyasına referans verilir; içindeki token veya sertifikalar kopyalanmaz. Context ve namespace listelerini oklarla yükleyebilirsin.") }
+        } header: { Text("Kubernetes") } footer: { Text("Kaydettiğinde kubeconfig uygulamaya kopyalanır; orijinal dosyayı silebilirsin. Güncellemek için yeni dosya seçip tekrar kaydet. Context ve namespace listelerini oklarla yükleyebilirsin.") }
     }
     private var sshFields: some View {
         Section {
@@ -119,7 +121,12 @@ struct TunnelEditor: View {
         }
     }
     private func save() {
-        do { try engine.save(profile); dismiss() }
-        catch { self.error = error.localizedDescription }
+        saving = true; error = nil; let snapshot = profile
+        saveOperation = Task { @MainActor in
+            defer { saving = false }
+            do { try await engine.save(snapshot); dismiss() }
+            catch is CancellationError {}
+            catch { self.error = error.localizedDescription }
+        }
     }
 }

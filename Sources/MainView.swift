@@ -27,7 +27,7 @@ struct MainView: View {
                     Image(systemName: "point.3.connected.trianglepath.dotted").font(.title2).foregroundStyle(.teal)
                     VStack(alignment: .leading, spacing: 3) {
                         Text("TunnelDesk").font(.headline)
-                        Text("\(engine.runningCount) açık · \(engine.profiles.count) tünel").font(.caption).foregroundStyle(.secondary)
+                        Text(engine.importingConfigs ? "Kubeconfig içeri aktarılıyor…" : "\(engine.runningCount) açık · \(engine.profiles.count) tünel").font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
                 }.padding(18)
@@ -64,7 +64,7 @@ struct MainView: View {
         .navigationTitle("TunnelDesk")
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
-                Button { engine.startAll() } label: { Label("Tümünü aç", systemImage: "play.fill") }.disabled(engine.profiles.isEmpty || engine.shuttingDown).help("Kayıtlı tünelleri aynı anda aç")
+                Button { engine.startAll() } label: { Label("Tümünü aç", systemImage: "play.fill") }.disabled(engine.profiles.isEmpty || engine.shuttingDown || engine.importingConfigs).help("Kayıtlı tünelleri aynı anda aç")
                 Button { engine.stopAll() } label: { Label("Tümünü kapat", systemImage: "stop.fill") }.disabled(engine.activeCount == 0).help("Açık tünelleri ve geçici podlarını kapat")
                 Divider()
                 Button { editor = EditorPresentation(profile: TunnelProfile()) } label: { Label("Yeni tünel", systemImage: "plus") }.keyboardShortcut("n")
@@ -170,7 +170,7 @@ struct TunnelDetail: View {
                 if session.status.busy {
                     Button { engine.stop(profile) } label: { Label("Tüneli kapat", systemImage: "stop.fill") }.buttonStyle(.borderedProminent).tint(.orange).disabled(session.status == .stopping)
                 } else {
-                    Button { engine.start(profile) } label: { Label("Tüneli aç", systemImage: "play.fill") }.buttonStyle(.borderedProminent).tint(.teal)
+                    Button { engine.start(profile) } label: { Label("Tüneli aç", systemImage: "play.fill") }.buttonStyle(.borderedProminent).tint(.teal).disabled(engine.importingConfigs)
                 }
                 Button { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(profile.endpoint, forType: .string); copied = true; DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copied = false } } label: { Label(copied ? "Kopyalandı" : "Adresi kopyala", systemImage: copied ? "checkmark" : "doc.on.doc") }
                 Spacer()

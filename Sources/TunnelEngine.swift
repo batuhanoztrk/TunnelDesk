@@ -28,16 +28,24 @@ final class TunnelEngine: ObservableObject {
     @Published var notice: String?
     @Published private(set) var revision = 0
     @Published private(set) var shuttingDown = false
+    @Published private(set) var importingConfigs = false
     let tools: ToolPaths
     let store: ProfileStore
+    let kubeconfigs: KubeconfigStore
     private var sessions: [UUID: TunnelSession] = [:]
     private var subscriptions: [UUID: AnyCancellable] = [:]
     private var storageValid = true
+    private var migration: Task<Void, Never>?
+    private var saving: Task<Void, Error>?
 
     init(store: ProfileStore = ProfileStore(), tools: ToolPaths = .detected) {
-        self.store = store; self.tools = tools
+        self.store = store; self.tools = tools; self.kubeconfigs = KubeconfigStore(profileStore: store)
         do { profiles = try store.load() }
         catch { storageValid = false; notice = "Tünel kayıtları okunamadı. Mevcut dosyanın üzerine yazılmadı.\n\(error.localizedDescription)\n\(store.url.path)" }
+        if profiles.contains(where: { $0.kind != .ssh && !kubeconfigs.isManaged($0.kubeconfig, for: $0.id) }) {
+            importingConfigs = true
+            migration = Task { [weak self] in await self?.migrateKubeconfigs() }
+        }
     }
     var runningCount: Int { profiles.filter { session(for: $0.id).status == .running }.count }
     var activeCount: Int { profiles.filter { session(for: $0.id).status.busy }.count }
@@ -51,24 +59,63 @@ final class TunnelEngine: ObservableObject {
         }
         return session
     }
-    func save(_ raw: TunnelProfile) throws {
+    func save(_ raw: TunnelProfile) async throws {
         guard storageValid else { throw TunnelError("Kayıt dosyası okunamadığı için kaydetme kapalı. ‘Tüneller’ menüsünden kayıt dosyasını kontrol edip uygulamayı yeniden aç.") }
-        let profile = raw.normalized()
+        guard !shuttingDown else { throw CancellationError() }
+        guard !importingConfigs else { throw TunnelError("Kubeconfig içeri aktarma işleminin tamamlanmasını bekle.") }
+        importingConfigs = true; defer { importingConfigs = false; saving = nil }
+        let task = Task { try await self.persistImported(raw.normalized()) }
+        saving = task
+        try await withTaskCancellationHandler { try await task.value } onCancel: { task.cancel() }
+    }
+    private func persistImported(_ raw: TunnelProfile) async throws {
+        var profile = raw
         try profile.validate()
         let state = session(for: profile.id)
         guard !state.status.busy && state.relayName == nil else { throw TunnelError("Düzenlemeden önce tüneli kapat ve varsa geçici podunu temizle.") }
+        let previous = profiles.first(where: { $0.id == profile.id })?.kubeconfig
+        if profile.kind == .ssh { profile.kubeconfig = "" }
+        else { profile.kubeconfig = try await kubeconfigs.importFile(profile.kubeconfig, for: profile.id, kubectl: tools.kubectl) }
         var updated = profiles
         if let index = updated.firstIndex(where: { $0.id == profile.id }) { updated[index] = profile }
         else { updated.append(profile) }
-        try store.save(updated)
+        do {
+            try Task.checkCancellation()
+            guard !shuttingDown else { throw CancellationError() }
+            try store.save(updated)
+        } catch {
+            try? kubeconfigs.removeIfUnused(profile.kubeconfig, profiles: profiles)
+            throw error
+        }
         profiles = updated; selectedID = profile.id
+        if let previous, previous != profile.kubeconfig {
+            do { try kubeconfigs.removeIfUnused(previous, profiles: profiles) }
+            catch { notice = "Bağlantı kaydedildi; eski kubeconfig kopyası temizlenemedi." }
+        }
+    }
+    private func migrateKubeconfigs() async {
+        defer { importingConfigs = false; migration = nil }
+        let originalSelection = selectedID
+        var failures: [String] = []
+        for profile in profiles where profile.kind != .ssh && !kubeconfigs.isManaged(profile.kubeconfig, for: profile.id) {
+            if Task.isCancelled || shuttingDown { break }
+            do { try await persistImported(profile) }
+            catch is CancellationError { break }
+            catch { failures.append("\(profile.name): \(error.localizedDescription)") }
+        }
+        selectedID = originalSelection
+        if !failures.isEmpty { notice = "Bazı mevcut kubeconfig dosyaları içeri aktarılamadı. Bu bağlantıları düzenleyip dosyayı yeniden seçebilirsin.\n" + failures.joined(separator: "\n") }
     }
     func remove(_ profile: TunnelProfile) {
+        guard !importingConfigs else { notice = "Kubeconfig içeri aktarma işleminin tamamlanmasını bekle."; return }
+        guard let profile = profiles.first(where: { $0.id == profile.id }) else { return }
         let state = session(for: profile.id)
         guard !state.status.busy && state.relayName == nil else { notice = "Silmeden önce tüneli ve geçici podunu kapat."; return }
         let updated = profiles.filter { $0.id != profile.id }
         do {
             try store.save(updated); profiles = updated
+            do { try kubeconfigs.removeIfUnused(profile.kubeconfig, profiles: profiles) }
+            catch { notice = "Tünel silindi; kayıtlı kubeconfig kopyası temizlenemedi." }
             sessions.removeValue(forKey: profile.id); subscriptions.removeValue(forKey: profile.id)
             if selectedID == profile.id { selectedID = profiles.first?.id }
         } catch { notice = "Tünel silinemedi: \(error.localizedDescription)" }
@@ -84,6 +131,9 @@ final class TunnelEngine: ObservableObject {
     }
     func start(_ profile: TunnelProfile) {
         guard !shuttingDown else { return }
+        guard !importingConfigs else { notice = "Kubeconfig içeri aktarma işleminin tamamlanmasını bekle."; return }
+        // Always use the stored, imported profile even when a caller retained its pre-import value.
+        let profile = profiles.first(where: { $0.id == profile.id }) ?? profile
         let state = session(for: profile.id)
         guard !state.status.busy else { return }
         do {
@@ -211,6 +261,11 @@ final class TunnelEngine: ObservableObject {
     }
     func shutdown() async {
         shuttingDown = true
+        let activeSave = saving
+        activeSave?.cancel()
+        migration?.cancel()
+        _ = try? await activeSave?.value
+        await migration?.value
         stopAll()
         let tasks = sessions.values.compactMap(\.stopOperation)
         for task in tasks { await task.value }

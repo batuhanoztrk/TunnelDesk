@@ -29,6 +29,7 @@ final class TunnelEngine: ObservableObject {
     @Published private(set) var revision = 0
     @Published private(set) var shuttingDown = false
     @Published private(set) var importingConfigs = false
+    @Published private(set) var pendingAutomaticStartup = false
     let tools: ToolPaths
     let store: ProfileStore
     let kubeconfigs: KubeconfigStore
@@ -38,6 +39,8 @@ final class TunnelEngine: ObservableObject {
     private var migration: Task<Void, Never>?
     private var saving: Task<Void, Error>?
     private var shutdownOperation: Task<Void, Never>?
+    private var automaticStartupTask: Task<Void, Never>?
+    private var scheduledAutomaticStartup = false
 
     init(store: ProfileStore = ProfileStore(), tools: ToolPaths = .detected) {
         self.store = store; self.tools = tools; self.kubeconfigs = KubeconfigStore(profileStore: store)
@@ -50,6 +53,7 @@ final class TunnelEngine: ObservableObject {
     }
     var runningCount: Int { profiles.filter { session(for: $0.id).status == .running }.count }
     var activeCount: Int { profiles.filter { session(for: $0.id).status.busy }.count }
+    var canStopAll: Bool { pendingAutomaticStartup || activeCount > 0 }
     var selected: TunnelProfile? { profiles.first { $0.id == selectedID } }
     func session(for id: UUID) -> TunnelSession {
         if let existing = sessions[id] { return existing }
@@ -124,7 +128,35 @@ final class TunnelEngine: ObservableObject {
     func startAll() {
         for profile in profiles where !session(for: profile.id).status.busy { start(profile) }
     }
+    func setAutoStartOnLaunch(for id: UUID, enabled: Bool) throws {
+        guard storageValid else { throw TunnelError("Tünel kayıtları okunamadığı için bu ayar kaydedilemiyor.") }
+        guard !shuttingDown && !importingConfigs else { throw TunnelError("Devam eden işlemin tamamlanmasını bekle.") }
+        guard let index = profiles.firstIndex(where: { $0.id == id }), profiles[index].autoStartOnLaunch != enabled else { return }
+        var updated = profiles
+        updated[index].autoStartOnLaunch = enabled
+        try store.save(updated)
+        profiles = updated
+    }
+    func startConfiguredTunnelsOnLaunch() {
+        guard !scheduledAutomaticStartup && !shuttingDown else { return }
+        scheduledAutomaticStartup = true
+        guard profiles.contains(where: \.autoStartOnLaunch) else { return }
+        pendingAutomaticStartup = true
+        automaticStartupTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer { self.automaticStartupTask = nil; self.pendingAutomaticStartup = false }
+            // Wait for imported configs/profile writes before taking the launch snapshot.
+            for await importing in self.$importingConfigs.values {
+                if Task.isCancelled || self.shuttingDown { return }
+                if !importing { break }
+            }
+            guard !Task.isCancelled && !self.shuttingDown else { return }
+            for profile in self.profiles where profile.autoStartOnLaunch { self.start(profile) }
+        }
+    }
     func stopAll() {
+        automaticStartupTask?.cancel()
+        pendingAutomaticStartup = false
         for profile in profiles {
             let state = session(for: profile.id)
             if state.status.busy || state.relayName != nil { stop(profile) }
@@ -263,6 +295,8 @@ final class TunnelEngine: ObservableObject {
     func shutdown() async {
         if let shutdownOperation { await shutdownOperation.value; return }
         shuttingDown = true
+        automaticStartupTask?.cancel()
+        pendingAutomaticStartup = false
         let operation = Task { await self.finishShutdown() }
         shutdownOperation = operation
         await operation.value

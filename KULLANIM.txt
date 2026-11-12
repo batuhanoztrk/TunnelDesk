@@ -1,4 +1,4 @@
-TunnelDesk 1.0.4 — macOS
+TunnelDesk 1.0.5 — macOS
 
 BAŞLANGIÇ
 TunnelDesk.app'i aç. Uygulama boş başlar; hiçbir bağlantı veya sunucu bilgisi hazır gelmez.
@@ -49,9 +49,18 @@ Uygulama zorla kapatılırsa cluster'da artık pod kalabilir; geçici podlar en 
 
 OTOMATİK BAŞLATMA
 Ayarlar → Genel → “Mac açıldığında otomatik başlat” ile giriş öğesini açıp kapatabilirsin.
-Bu seçenek Mac'te oturum açıldığında uygulamayı başlatır; tünelleri otomatik açmaz.
+Bu seçenek Mac'te oturum açıldığında uygulamayı başlatır.
 macOS onayı gerekiyorsa aynı ekranda uyarı ve Sistem Ayarları'na geçiş düğmesi görünür.
 Durum macOS'tan okunur; Sistem Ayarları'ndaki değişiklikler uygulamaya dönünce yenilenir.
+
+TÜNELLERİ OTOMATİK AÇMA
+Her tünelin ayrıntı veya düzenleme ekranındaki “Uygulama açıldığında otomatik aç” seçeneğini kullan.
+Seçilen tüneller uygulama elle veya Mac girişinde açıldığında otomatik bağlanır.
+Varsayılan kapalıdır; eski kayıtlarda da kapalı kalır. Çoğaltılan tünelde yeniden seçilmesi gerekir.
+Bu tercihi ayrıntı ekranından açık tüneli kesmeden değiştirebilirsin; sonraki açılışta uygulanır.
+Kubeconfig içeri aktarması tamamlandıktan sonra süreç başına bir kez çalışır.
+Tümünü kapat seçeneği bekleyen otomatik açılışları da iptal eder.
+Bir bağlantı başarısız olursa diğer seçili bağlantılar başlatılır; hatayı günlükten inceleyebilirsin.
 
 KISAYOLLAR
 Cmd+N: Yeni tünel

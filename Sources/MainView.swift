@@ -65,7 +65,7 @@ struct MainView: View {
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button { engine.startAll() } label: { Label("Tümünü aç", systemImage: "play.fill") }.disabled(engine.profiles.isEmpty || engine.shuttingDown || engine.importingConfigs).help("Kayıtlı tünelleri aynı anda aç")
-                Button { engine.stopAll() } label: { Label("Tümünü kapat", systemImage: "stop.fill") }.disabled(engine.activeCount == 0).help("Açık tünelleri ve geçici podlarını kapat")
+                Button { engine.stopAll() } label: { Label("Tümünü kapat", systemImage: "stop.fill") }.disabled(!engine.canStopAll).help("Açık tünelleri kapat ve bekleyen otomatik açılışı iptal et")
                 Divider()
                 Button { editor = EditorPresentation(profile: TunnelProfile()) } label: { Label("Yeni tünel", systemImage: "plus") }.keyboardShortcut("n")
             }
@@ -82,6 +82,7 @@ struct MainView: View {
     }
     private func duplicate(_ profile: TunnelProfile) {
         var copy = profile; copy.id = UUID(); copy.name += " kopyası"; copy.localPort = ""
+        copy.autoStartOnLaunch = false
         editor = EditorPresentation(profile: copy)
     }
 }
@@ -196,6 +197,12 @@ struct TunnelDetail: View {
                 infoRow("Hedef port", profile.remotePort)
                 if let date = session.startedAt { infoRow("Açılma zamanı", date.formatted(date: .omitted, time: .standard)) }
             }.font(.callout)
+            Divider()
+            Toggle("Uygulama açıldığında otomatik aç", isOn: Binding(get: { profile.autoStartOnLaunch }, set: { enabled in
+                do { try engine.setAutoStartOnLaunch(for: profile.id, enabled: enabled) }
+                catch { engine.notice = error.localizedDescription }
+            })).disabled(engine.importingConfigs || engine.shuttingDown)
+            Text("Değişiklik bir sonraki uygulama açılışında geçerli olur.").font(.caption).foregroundStyle(.secondary)
         }.padding(18).frame(maxWidth: .infinity, alignment: .leading).background(Color.primary.opacity(0.025), in: RoundedRectangle(cornerRadius: 12)).overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.primary.opacity(0.07)))
     }
     private func infoRow(_ label: String, _ value: String) -> some View {

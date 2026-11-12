@@ -17,6 +17,10 @@ if "config" in args and "view" in args:
     filename = args[args.index("--kubeconfig") + 1]
     if "slow-import" in filename:
         time.sleep(20)
+    elif "delayed-import" in filename:
+        time.sleep(0.25)
+    elif "qa-cancel-import" in filename:
+        time.sleep(10)
     with open(filename) as f:
         content = f.read()
     if content.startswith("invalid"):

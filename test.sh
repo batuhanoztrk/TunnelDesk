@@ -17,6 +17,7 @@ xcrun swiftc -swift-version 5 -parse-as-library \
   "$PROJECT_DIR/Tests/ManagedKubeconfigTests.swift" \
   "$PROJECT_DIR/Tests/VisibilityPreferenceTests.swift" \
   "$PROJECT_DIR/Tests/StartupPreferenceTests.swift" \
+  "$PROJECT_DIR/Tests/TunnelAutoStartTests.swift" \
   -o "$BUILD_DIR/IntegrationTests"
 "$BUILD_DIR/IntegrationTests" "$PROJECT_DIR"
 SPARKLE_DIR="$(bash "$PROJECT_DIR/scripts/fetch-sparkle.sh")"

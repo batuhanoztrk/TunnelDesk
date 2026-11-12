@@ -12,6 +12,7 @@ Uygulama boş başlar. Hazır bağlantı, kubeconfig, context, namespace veya su
 - Port çakışması kontrolü ve görünür hata mesajları.
 - GitHub release'lerinden imzalı otomatik güncelleme; menüden elle kontrol ve otomatik güncelleme ayarları.
 - Ayarlar → Genel'den Dock ve menü çubuğu simgelerini ayrı ayrı yönetme; varsayılan Dock kapalı, tray açık.
+- Her bağlantı için bağımsız, kalıcı “Uygulama açıldığında otomatik aç” tercihi.
 - Yerel dinleyicileri yalnızca `127.0.0.1` adresine bağlama.
 
 | Tür | Kullanım |
@@ -47,7 +48,11 @@ Uygulama varsayılan olarak Dock'ta görünmez; menü çubuğundaki TunnelDesk s
 
 Tray menüsünden tünelleri tek tek veya topluca açıp kapatabilir, ana pencereyi ve Ayarlar'ı açabilirsin. Pencereyi kapatmak uygulamayı veya açık tünelleri durdurmaz. Tamamen çıkmak için tray menüsündeki **Çıkış** seçeneğini kullan.
 
-**Ayarlar → Genel → Mac açıldığında otomatik başlat** seçeneği uygulamayı bu Mac'te oturum açıldığında başlatır. Durum macOS giriş öğelerinden okunur; ayrı bir yerel açık/kapalı kaydı tutulmaz. macOS onayı gerekiyorsa ayarda açıkça gösterilir ve Sistem Ayarları'na ulaşılabilir. Bu seçenek yalnızca uygulamayı başlatır; tüneller manuel olarak açılır. Varsayılan olarak giriş öğesi eklenmez.
+**Ayarlar → Genel → Mac açıldığında otomatik başlat** seçeneği uygulamayı bu Mac'te oturum açıldığında başlatır. Durum macOS giriş öğelerinden okunur; ayrı bir yerel açık/kapalı kaydı tutulmaz. macOS onayı gerekiyorsa ayarda açıkça gösterilir ve Sistem Ayarları'na ulaşılabilir. Varsayılan olarak giriş öğesi eklenmez.
+
+Bir tünelin ayrıntılarında veya düzenleme ekranında **Uygulama açıldığında otomatik aç** seçeneğini etkinleştirebilirsin. Yalnızca seçilen tüneller uygulama açılışında otomatik bağlanır; uygulamanın Mac girişinde veya elle açılması fark etmez. Her tünel için tercih ayrıdır ve varsayılan kapalıdır; eski kayıtlar da kapalı olarak yüklenir. Ayrıntı ekranından bu tercihi açık bağlantıyı kesmeden değiştirebilirsin; değişiklik sonraki açılışta uygulanır.
+
+Otomatik açılış kubeconfig içeri aktarma işlemini bekler ve süreç başına bir kez çalışır. Pencereyi yeniden açmak tünelleri tekrar başlatmaz. Tümünü kapat ve uygulama çıkışı, bekleyen otomatik bağlantıları da iptal eder. Bağlantı açılamazsa hata durumu ve günlük gösterilir; diğer seçili tüneller başlatılmaya devam edilir.
 
 ## Güncellemeler
 

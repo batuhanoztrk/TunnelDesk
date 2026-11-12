@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return .terminateLater
     }
     func applicationDidFinishLaunching(_ notification: Notification) {
+        engine?.startConfiguredTunnelsOnLaunch()
         visibility?.connectToApplication { showDock in
             let policy: NSApplication.ActivationPolicy = showDock ? .regular : .accessory
             if NSApp.activationPolicy() == policy { return true }
@@ -97,7 +98,7 @@ struct TrayMenu: View {
         }
         Divider()
         Button("Tümünü aç") { engine.startAll() }.disabled(engine.profiles.isEmpty)
-        Button("Tümünü kapat") { engine.stopAll() }.disabled(engine.activeCount == 0)
+        Button("Tümünü kapat") { engine.stopAll() }.disabled(!engine.canStopAll)
         Divider()
         Button("Güncellemeleri kontrol et…") { updater.check() }.disabled(!updater.canCheck)
         Button("Ayarlar…") { NSApp.activate(ignoringOtherApps: true); openSettings() }.keyboardShortcut(",")

@@ -28,7 +28,7 @@ struct AppearanceSettingsView: View {
                 }
                 if let error = startup.error { Text(error).foregroundStyle(.red).font(.callout) }
             } header: { Text("Başlangıç") } footer: {
-                Text("Bu Mac'te oturum açıldığında TunnelDesk'i başlatır. Tünellerini uygulama içinden açabilirsin.")
+                Text("Bu Mac'te oturum açıldığında TunnelDesk'i başlatır. Otomatik açılacak tünelleri her bağlantının ayarından seçebilirsin.")
             }
             Section {
                 Text("Pencereyi kapatsan da tüneller çalışmaya devam eder. Menü çubuğundaki simgeden tek tek veya topluca açıp kapatabilir, ana pencereyi yeniden açabilirsin.").foregroundStyle(.secondary)

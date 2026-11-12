@@ -30,6 +30,7 @@ struct TunnelEditor: View {
                     TextField("Tünel adı", text: $profile.name, prompt: Text("Bağlantına bir ad ver"))
                     Picker("Bağlantı türü", selection: $profile.kind) { ForEach(TunnelKind.allCases) { Text($0.title).tag($0) } }
                     TextField("Yerel port", text: $profile.localPort, prompt: Text("Bilgisayarında kullanılacak port"))
+                    Toggle("Uygulama açıldığında otomatik aç", isOn: $profile.autoStartOnLaunch)
                 } header: { Text("Genel") } footer: { Text("Bağlantı adresin 127.0.0.1:<yerel port> olacak. Her açık tünel farklı bir yerel port kullanmalı.") }
                 if profile.kind != .ssh { kubernetesFields }
                 else { sshFields }

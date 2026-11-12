@@ -34,6 +34,32 @@ struct TunnelProfile: Codable, Equatable, Identifiable {
     var sshUser = ""
     var sshPort = "22"
     var identityFile = ""
+    var autoStartOnLaunch = false
+
+    init() {}
+    private enum CodingKeys: String, CodingKey {
+        case id, name, kind, localPort, kubeconfig, context, namespace, resource
+        case remoteHost, remotePort, sshHost, sshUser, sshPort, identityFile, autoStartOnLaunch
+    }
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(UUID.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        kind = try values.decode(TunnelKind.self, forKey: .kind)
+        localPort = try values.decode(String.self, forKey: .localPort)
+        kubeconfig = try values.decode(String.self, forKey: .kubeconfig)
+        context = try values.decode(String.self, forKey: .context)
+        namespace = try values.decode(String.self, forKey: .namespace)
+        resource = try values.decode(String.self, forKey: .resource)
+        remoteHost = try values.decode(String.self, forKey: .remoteHost)
+        remotePort = try values.decode(String.self, forKey: .remotePort)
+        sshHost = try values.decode(String.self, forKey: .sshHost)
+        sshUser = try values.decode(String.self, forKey: .sshUser)
+        sshPort = try values.decode(String.self, forKey: .sshPort)
+        identityFile = try values.decode(String.self, forKey: .identityFile)
+        // Existing profiles predate this setting and must never start unexpectedly.
+        autoStartOnLaunch = try values.decodeIfPresent(Bool.self, forKey: .autoStartOnLaunch) ?? false
+    }
 
     var endpoint: String { "127.0.0.1:\(localPort)" }
     var destination: String {

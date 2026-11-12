@@ -124,6 +124,7 @@ struct IntegrationTests {
         do { _ = try await CommandExecutor.run("/nonexistent/tunneldesk-tool", [], timeout: 1); throw TunnelError("Missing command was accepted") }
         catch { try expect(!error.localizedDescription.isEmpty, "Missing command reports launch failure") }
         try await ManagedKubeconfigTests.run(fake: fake)
+        try await TunnelAutoStartTests.run(fake: fake)
         let corrupt = temporary.appendingPathComponent("corrupt.json"); try Data("invalid JSON".utf8).write(to: corrupt)
         let damaged = TunnelEngine(store: ProfileStore(url: corrupt))
         do { try await damaged.save(a); throw TunnelError("Corrupt storage overwritten") }
